@@ -1,0 +1,53 @@
+services:
+
+  app:
+    image: myapp:v1
+    container_name: app_block_4
+    networks:
+      - network_block_4
+    ports:
+      - 8000:8000
+    environment:
+      - DB_HOST=db
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+  
+  db:
+    image: postgres:16
+    container_name: db_block_4
+    networks:
+      - network_block_4
+    volumes:
+      - db_volume_block_4:/var/lib/postgresql/data/
+    environment:
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_USER=user
+      - POSTGRES_DB=postgres
+    healthcheck:
+      test: ["CMD","pg_isready","-U","user"]
+      start_period: 5s
+      interval: 3s
+      retries: 4
+    restart: unless-stopped
+
+  adminer:
+    image: adminer:6.3.0
+    container_name: adminer_block_4
+    networks:
+      - network_block_4
+    ports:
+      - 8080:8080
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  db_volume_block_4:
+
+networks:
+  network_block_4:
+    driver: bridge
+    name: network_block_4
